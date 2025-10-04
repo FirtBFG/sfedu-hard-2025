@@ -21,7 +21,7 @@ class TemperatureChartCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  'Temperature Monitoring',
+                  'Мониторинг датчиков',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
@@ -126,6 +126,10 @@ class SensorTypeDropdownButton extends StatelessWidget {
         DropdownMenuItem(
           value: SensorType.temperature,
           child: Text('Температура'),
+        ),
+        DropdownMenuItem(
+          value: SensorType.fire,
+          child: Text('Возгорания'),
         ),
       ],
       onChanged: (value) {

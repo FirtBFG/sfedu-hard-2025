@@ -30,7 +30,7 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         routes: AppRoutes.routes,
         initialRoute: AppRoutes.home,
-        theme: AppTheme.lightTheme,
+        theme: AppTheme.darkTheme,
       ),
     );
   }

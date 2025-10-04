@@ -63,35 +63,6 @@ class PlotController extends ChangeNotifier {
     _errorMessage = error;
   }
 
-  /// Обеспечивает минимальное количество точек данных для корректного отображения графика
-  // void _ensureMinimumDataPoints() {
-  //   final expectedPoints = _getExpectedPointsCount(_selectedPeriod);
-  //   final currentPoints = _aggregatedData.length;
-
-  //   if (currentPoints < expectedPoints) {
-  //     print(
-  //         'Недостаточно данных: $currentPoints из $expectedPoints точек. Заполняем значениями по умолчанию.');
-
-  //     // Добавляем точки с последним знаением температуры
-  //     final baseValue = _rawData.isEmpty ? -1.0 : _aggregatedData.last.value;
-  //     final endDate = DateTime.now();
-  //     final startDate = endDate.subtract(Duration(days: expectedPoints - 1));
-
-  //     while (_aggregatedData.length < expectedPoints) {
-  //       final currentDay =
-  //           startDate.add(Duration(days: _aggregatedData.length));
-
-  //       _aggregatedData.add(AggregatedReading(
-  //         timestamp: currentDay,
-  //         value: baseValue,
-  //         sampleCount: 0,
-  //         unit: 'celsius',
-  //         sensorType: 'temperature',
-  //       ));
-  //     }
-  //   }
-  // }
-
   List<AggregatedReading> get plotData => _aggregatedData;
 
   double get minValue {
@@ -129,28 +100,6 @@ class PlotController extends ChangeNotifier {
   Future<void> refresh() async {
     await fetchData();
   }
-
-  // /// Получает ожидаемое количество точек для текущего периода
-  // int _getExpectedPointsCount(TimePeriod period) {
-  //   switch (period) {
-  //     case TimePeriod.hour:
-  //       return 12; // 12 точек за час (каждые 5 минут)
-  //     case TimePeriod.hours3:
-  //       return 18; // 18 точек за 3 часа (каждые 10 минут)
-  //     case TimePeriod.hours6:
-  //       return 36; // 36 точек за 6 часов
-  //     case TimePeriod.hours8:
-  //       return 48; // 48 точек за 8 часов
-  //     case TimePeriod.hours12:
-  //       return 72; // 72 точки за 12 часов
-  //     case TimePeriod.day:
-  //       return 24; // 24 точки за день (каждый час)
-  //     case TimePeriod.week:
-  //       return 7; // 7 дней в неделе
-  //     case TimePeriod.month:
-  //       return 30; // 30 дней в месяце
-  //   }
-  // }
 
   String getBottomTitle(int value) {
     final now = DateTime.now();
@@ -194,7 +143,7 @@ class PlotController extends ChangeNotifier {
       case SensorType.alert:
         return '$value%';
       case SensorType.fire:
-        return '$value°C';
+        return '$value ед.';
     }
   }
 
@@ -225,18 +174,27 @@ class PlotController extends ChangeNotifier {
     final reading = _aggregatedData[index];
     final timestamp = reading.timestamp;
 
+    String simb = '';
+    if (_selectedSensorType == SensorType.temperature) {
+      simb = '°C';
+    } else if (_selectedSensorType == SensorType.humidity) {
+      simb = '%';
+    } else {
+      simb = ' ед.';
+    }
+
     switch (_selectedPeriod) {
       case TimePeriod.hour:
       case TimePeriod.hours3:
       case TimePeriod.hours6:
       case TimePeriod.hours8:
       case TimePeriod.hours12:
-        return '${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}\n${reading.value.toStringAsFixed(1)}°C\n(${reading.sampleCount} измерений)';
+        return '${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}\n${reading.value.toStringAsFixed(1)}$simb\n(${reading.sampleCount} измерений)';
       case TimePeriod.day:
-        return '${timestamp.hour.toString().padLeft(2, '0')}:00\n${reading.value.toStringAsFixed(1)}°C\n(${reading.sampleCount} измерений)';
+        return '${timestamp.hour.toString().padLeft(2, '0')}:00\n${reading.value.toStringAsFixed(1)}$simb\n(${reading.sampleCount} измерений)';
       case TimePeriod.week:
       case TimePeriod.month:
-        return '${timestamp.day.toString().padLeft(2, '0')}.${timestamp.month.toString().padLeft(2, '0')}\n${reading.value.toStringAsFixed(1)}°C\n(${reading.sampleCount} измерений)';
+        return '${timestamp.day.toString().padLeft(2, '0')}.${timestamp.month.toString().padLeft(2, '0')}\n${reading.value.toStringAsFixed(1)}$simb\n(${reading.sampleCount} измерений)';
     }
   }
 }
