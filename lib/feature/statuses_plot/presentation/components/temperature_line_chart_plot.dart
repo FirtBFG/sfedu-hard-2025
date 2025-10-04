@@ -32,23 +32,23 @@ class TemperatureLineChartPlot extends StatelessWidget {
           border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
         ),
         minX: 0,
-        maxX: plotProvider.tempDataList.length.toDouble() - 1,
-        minY: plotProvider.minTemp - 0.5,
-        maxY: plotProvider.maxTemp + 0.5,
+        maxX: plotProvider.plotData.length.toDouble() - 1,
+        minY: plotProvider.minValue - 0.5,
+        maxY: plotProvider.maxValue + 0.5,
         titlesData: FlTitlesData(
           leftTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 50,
               interval: max(
-                ((plotProvider.maxTemp - plotProvider.minTemp) / 5)
+                ((plotProvider.maxValue - plotProvider.minValue) / 5)
                     .roundToDouble(),
                 0.5, // минимальный интервал
               ),
               getTitlesWidget: (value, meta) {
                 // Показываем значение только если оно укладывается в интервал
-                if (value > plotProvider.maxTemp + 0.3 ||
-                    value < plotProvider.minTemp - 0.3) {
+                if (value > plotProvider.maxValue + 0.3 ||
+                    value < plotProvider.minValue - 0.3) {
                   return const SizedBox.shrink();
                 }
                 // Округляем до одного знака после запятой
@@ -101,9 +101,11 @@ class TemperatureLineChartPlot extends StatelessWidget {
         lineBarsData: [
           LineChartBarData(
             spots: List.generate(
-              plotProvider.tempDataList.length,
-              (index) =>
-                  FlSpot(index.toDouble(), plotProvider.tempDataList[index]),
+              plotProvider.plotData.length,
+              (index) => FlSpot(
+                index.toDouble(),
+                plotProvider.plotData[index].value,
+              ),
             ),
             isCurved: true,
             curveSmoothness: 0.2, // Уменьшаем округлость линии
