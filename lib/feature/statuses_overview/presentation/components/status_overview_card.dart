@@ -8,25 +8,25 @@ class StatusOverviewCard extends StatelessWidget {
     // тут нужен провайдер для получения статусов
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
               'Warehouse Status',
               style: TextStyle(
-                fontSize: 18,
+                fontSize: 14,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
             GridView.count(
               shrinkWrap: true,
               crossAxisCount: 2,
-              mainAxisSpacing: 8,
-              crossAxisSpacing: 8,
+              mainAxisSpacing: 6,
+              crossAxisSpacing: 6,
               childAspectRatio:
-                  2.3, // Changed from 1.5 to 2.0 to make tiles shorter
+                  2.5, // Увеличили для более компактного отображения
               children: const [
                 StatusTile(
                   icon: Icons.check_circle,
@@ -78,27 +78,28 @@ class StatusTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(6),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: color),
-          const SizedBox(height: 4),
+          Icon(icon, color: color, size: 18),
+          const SizedBox(height: 2),
           Text(
             title,
             style: TextStyle(
               color: Colors.grey[600],
-              fontSize: 12,
+              fontSize: 10,
             ),
           ),
           Text(
             value,
             style: const TextStyle(
               fontWeight: FontWeight.bold,
+              fontSize: 12,
             ),
           ),
         ],

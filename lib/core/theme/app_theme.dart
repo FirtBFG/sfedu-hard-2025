@@ -14,7 +14,7 @@ class AppTheme {
         iconTheme: const IconThemeData(color: Colors.black87),
         titleTextStyle: const TextStyle(
           color: Colors.black87,
-          fontSize: 20,
+          fontSize: 18,
           fontWeight: FontWeight.w500,
         ),
       ),
@@ -47,6 +47,11 @@ class AppTheme {
       colorScheme: ColorScheme.light(
         primary: const Color.fromARGB(255, 222, 222, 222),
         onPrimary: Colors.white,
+        secondary: Colors.green.withValues(alpha: 0.2),
+        onSecondary: Colors.green,
+        error: Colors.red.withValues(alpha: 0.1),
+        onError: Colors.red,
+        onPrimaryContainer: Colors.blueAccent,
       ),
 
       // Прочие настройки

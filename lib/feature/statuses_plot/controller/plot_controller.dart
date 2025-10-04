@@ -1,5 +1,8 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
-import 'package:hack_sfedu_2025/core/data/mok_data/plot_data.dart';
+import 'package:hack_sfedu_2025/core/data/models/device_data.dart';
+import 'package:hack_sfedu_2025/core/service/devices_service.dart';
 
 enum TimePeriod {
   hour, // 1 час (12 значений, каждые 5 минут)
@@ -12,46 +15,67 @@ enum TimePeriod {
   month, // существующий
 }
 
+extension TimePeriodExtension on TimePeriod {
+  String get serverValue {
+    switch (this) {
+      case TimePeriod.hour:
+        return '1h';
+      case TimePeriod.hours3:
+        return '3h';
+      case TimePeriod.hours6:
+        return '6h';
+      case TimePeriod.hours8:
+        return '8h';
+      case TimePeriod.hours12:
+        return '12h';
+      case TimePeriod.day:
+        return '24h';
+      case TimePeriod.week:
+        return '7d';
+      case TimePeriod.month:
+        return '30d';
+    }
+  }
+}
+
+enum SensorType {
+  temperature,
+  humidity,
+  alert,
+  fire,
+}
+
 class PlotController extends ChangeNotifier {
   TimePeriod _selectedPeriod = TimePeriod.day;
+  SensorType _selectedSensorType = SensorType.temperature;
 
-  // double _minTemp = 0;
-  // double _maxTemp = 20;
+  final DevicesService _devicesService = DevicesService();
+  List<Reading> plotData = [];
 
   TimePeriod get timePeriod => _selectedPeriod;
 
-  //double get maxTemp => _maxTemp;
-  List<double> get tempDataList {
-    switch (_selectedPeriod) {
-      case TimePeriod.hour:
-        return PlotData.hourTemperatures;
-      case TimePeriod.hours3:
-        return PlotData.hours3Temperatures;
-      case TimePeriod.hours6:
-        return PlotData.hours6Temperatures;
-      case TimePeriod.hours8:
-        return PlotData.hours8Temperatures;
-      case TimePeriod.hours12:
-        return PlotData.hours12Temperatures;
-      case TimePeriod.day:
-        return PlotData.dayTemperatures;
-      case TimePeriod.week:
-        return PlotData.weekTemperatures;
-      case TimePeriod.month:
-        return PlotData.monthTemperatures;
-    }
+  Future<void> fetchData() async {
+    plotData = await _devicesService.fetchDeviceData(
+      limit: 1000,
+      sensorType: _selectedSensorType.name,
+      timeframe: _selectedPeriod.serverValue,
+    );
+    notifyListeners();
   }
 
-  double get minTemp {
-    final sortedData = List.from(tempDataList);
-    sortedData.sort();
-    return sortedData.first;
+  double get minValue {
+    if (plotData.isEmpty) return 0;
+    return plotData.map((reading) => reading.value).reduce(min);
   }
 
-  double get maxTemp {
-    final sortedData = List.from(tempDataList);
-    sortedData.sort();
-    return sortedData.last;
+  double get maxValue {
+    if (plotData.isEmpty) return 0;
+    return plotData.map((reading) => reading.value).reduce(max);
+  }
+
+  void changePeriod(TimePeriod period) {
+    _selectedPeriod = period;
+    fetchData(); // Сразу обновляем данные при смене периода
   }
 
   String getBottomTitle(int value) {
@@ -108,41 +132,36 @@ class PlotController extends ChangeNotifier {
     }
   }
 
-  void changePeriod(TimePeriod period) {
-    _selectedPeriod = period;
-    notifyListeners();
-  }
-
   String getTooltipText(int index) {
     final now = DateTime.now();
     switch (_selectedPeriod) {
       case TimePeriod.hour:
         final time = now.subtract(Duration(minutes: (11 - index) * 5));
-        return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}\n${tempDataList[index]}°C';
+        return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}\n${plotData[index]}°C';
       case TimePeriod.hours3:
         final time = now.subtract(Duration(minutes: (17 - index) * 10));
-        return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}\n${tempDataList[index]}°C';
+        return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}\n${plotData[index]}°C';
       case TimePeriod.hours6:
         final time = now.subtract(Duration(minutes: (35 - index) * 10));
-        return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}\n${tempDataList[index]}°C';
+        return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}\n${plotData[index]}°C';
       case TimePeriod.hours8:
         final time = now.subtract(Duration(minutes: (47 - index) * 10));
-        return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}\n${tempDataList[index]}°C';
+        return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}\n${plotData[index]}°C';
       case TimePeriod.hours12:
         final time = now.subtract(Duration(minutes: (71 - index) * 10));
-        return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}\n${tempDataList[index]}°C';
+        return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}\n${plotData[index]}°C';
       case TimePeriod.day:
-        return '${index.toString().padLeft(2, '0')}:00\n${tempDataList[index]}°C';
+        return '${index.toString().padLeft(2, '0')}:00\n${plotData[index]}°C';
       case TimePeriod.week:
         final date = DateTime.now()
             .subtract(const Duration(days: 6))
             .add(Duration(days: index));
-        return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}\n${tempDataList[index]}°C';
+        return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}\n${plotData[index]}°C';
       case TimePeriod.month:
         final date = DateTime.now()
             .subtract(const Duration(days: 29))
             .add(Duration(days: index));
-        return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}\n${tempDataList[index]}°C';
+        return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}\n${plotData[index]}°C';
     }
   }
 }
