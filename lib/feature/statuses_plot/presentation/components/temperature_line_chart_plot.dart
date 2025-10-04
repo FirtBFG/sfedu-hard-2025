@@ -18,7 +18,7 @@ class TemperatureLineChartPlot extends StatelessWidget {
       LineChartData(
         gridData: FlGridData(
           show: true,
-          horizontalInterval: 2,
+          horizontalInterval: plotProvider.rawDataCount.toDouble(),
           verticalInterval: 4,
           getDrawingHorizontalLine: (value) {
             return FlLine(
