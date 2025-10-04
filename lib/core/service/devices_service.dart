@@ -3,7 +3,7 @@ import 'package:hack_sfedu_2025/core/data/models/device_data.dart';
 
 class DevicesService {
   final DevicesRepository _repository =
-      DevicesRepository(baseURL: 'https://z24eoe-194-87-191-168.ru.tuna.am/');
+      DevicesRepository(baseURL: 'https://nzezmt-194-87-191-168.ru.tuna.am/');
 
   Future<List<Reading>> fetchDeviceData({
     required int limit,

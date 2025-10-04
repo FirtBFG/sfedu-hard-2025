@@ -44,7 +44,7 @@ class HomePage extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             SizedBox(
-              height: 250,
+              height: 280,
               child: TemperatureChartCard(),
             ),
             const SizedBox(height: 12),

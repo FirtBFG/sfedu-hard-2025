@@ -53,7 +53,7 @@ class TemperatureLineChartPlot extends StatelessWidget {
                 }
                 // Округляем до одного знака после запятой
                 return Text(
-                  '${value.toStringAsFixed(1)}°C',
+                  plotProvider.getLeftTitle(value),
                   style: const TextStyle(fontSize: 10),
                 );
               },

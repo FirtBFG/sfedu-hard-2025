@@ -2,20 +2,10 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:hack_sfedu_2025/core/data/models/device_data.dart';
+import 'package:hack_sfedu_2025/core/enums/sensor_type.dart';
 import 'package:hack_sfedu_2025/core/service/devices_service.dart';
 import 'package:hack_sfedu_2025/core/utils/data_aggregator.dart';
 import 'package:hack_sfedu_2025/core/enums/time_period.dart';
-
-// TimePeriod enum теперь импортируется из lib/core/enums/time_period.dart
-
-// TimePeriodExtension теперь импортируется из lib/core/enums/time_period.dart
-
-enum SensorType {
-  temperature,
-  humidity,
-  alert,
-  fire,
-}
 
 class PlotController extends ChangeNotifier {
   TimePeriod _selectedPeriod = TimePeriod.day;
@@ -27,6 +17,7 @@ class PlotController extends ChangeNotifier {
       []; // Агрегированные данные для отображения
 
   TimePeriod get timePeriod => _selectedPeriod;
+  SensorType get sensorType => _selectedSensorType;
 
   Future<void> fetchData() async {
     try {
@@ -82,7 +73,6 @@ class PlotController extends ChangeNotifier {
     }
   }
 
-  // Геттеры для доступа к агрегированным данным
   List<AggregatedReading> get plotData => _aggregatedData;
 
   double get minValue {
@@ -104,7 +94,12 @@ class PlotController extends ChangeNotifier {
 
   void changePeriod(TimePeriod period) {
     _selectedPeriod = period;
-    fetchData(); // Сразу обновляем данные при смене периода
+    fetchData();
+  }
+
+  void changeSensorType(SensorType sensorType) {
+    _selectedSensorType = sensorType;
+    fetchData();
   }
 
   /// Получает ожидаемое количество точек для текущего периода
@@ -159,6 +154,15 @@ class PlotController extends ChangeNotifier {
             .subtract(const Duration(days: 29))
             .add(Duration(days: value));
         return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}';
+    }
+  }
+
+  String getLeftTitle(double value) {
+    switch (_selectedSensorType) {
+      case SensorType.humidity:
+        return '${value.toStringAsFixed(1)}%';
+      case SensorType.temperature:
+        return '${value.toStringAsFixed(1)}°C';
     }
   }
 
