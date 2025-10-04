@@ -1,5 +1,4 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:hack_sfedu_2025/core/data/models/device_data.dart';
 import 'package:hack_sfedu_2025/core/enums/sensor_type.dart';
@@ -29,18 +28,14 @@ class PlotController extends ChangeNotifier {
     _setLoading(true);
 
     try {
-      // Получаем сырые данные с сервера (больше лимит для получения достаточного количества данных)
       _rawData = await _devicesService.fetchDeviceData(
         limit: 1000,
         sensorType: _selectedSensorType.name,
         timeframe: _selectedPeriod.serverValue,
       );
 
-      // Агрегируем данные согласно выбранному периоду
+      // Агрегируем данные. Теперь Da.taAggregator гарантирует полную сетку.
       _aggregatedData = DataAggregator.aggregateData(_rawData, _selectedPeriod);
-
-      // Форсируем создание точек данных если их недостаточно
-      _ensureMinimumDataPoints();
 
       _setLoading(false);
       notifyListeners();
@@ -69,33 +64,33 @@ class PlotController extends ChangeNotifier {
   }
 
   /// Обеспечивает минимальное количество точек данных для корректного отображения графика
-  void _ensureMinimumDataPoints() {
-    final expectedPoints = _getExpectedPointsCount(_selectedPeriod);
-    final currentPoints = _aggregatedData.length;
+  // void _ensureMinimumDataPoints() {
+  //   final expectedPoints = _getExpectedPointsCount(_selectedPeriod);
+  //   final currentPoints = _aggregatedData.length;
 
-    if (currentPoints < expectedPoints) {
-      print(
-          'Недостаточно данных: $currentPoints из $expectedPoints точек. Заполняем значениями по умолчанию.');
+  //   if (currentPoints < expectedPoints) {
+  //     print(
+  //         'Недостаточно данных: $currentPoints из $expectedPoints точек. Заполняем значениями по умолчанию.');
 
-      // Добавляем точки с последним знаением температуры
-      final baseValue = _rawData.isEmpty ? -1.0 : _aggregatedData.last.value;
-      final endDate = DateTime.now();
-      final startDate = endDate.subtract(Duration(days: expectedPoints - 1));
+  //     // Добавляем точки с последним знаением температуры
+  //     final baseValue = _rawData.isEmpty ? -1.0 : _aggregatedData.last.value;
+  //     final endDate = DateTime.now();
+  //     final startDate = endDate.subtract(Duration(days: expectedPoints - 1));
 
-      while (_aggregatedData.length < expectedPoints) {
-        final currentDay =
-            startDate.add(Duration(days: _aggregatedData.length));
+  //     while (_aggregatedData.length < expectedPoints) {
+  //       final currentDay =
+  //           startDate.add(Duration(days: _aggregatedData.length));
 
-        _aggregatedData.add(AggregatedReading(
-          timestamp: currentDay,
-          value: baseValue,
-          sampleCount: 0,
-          unit: 'celsius',
-          sensorType: 'temperature',
-        ));
-      }
-    }
-  }
+  //       _aggregatedData.add(AggregatedReading(
+  //         timestamp: currentDay,
+  //         value: baseValue,
+  //         sampleCount: 0,
+  //         unit: 'celsius',
+  //         sensorType: 'temperature',
+  //       ));
+  //     }
+  //   }
+  // }
 
   List<AggregatedReading> get plotData => _aggregatedData;
 
@@ -135,27 +130,27 @@ class PlotController extends ChangeNotifier {
     await fetchData();
   }
 
-  /// Получает ожидаемое количество точек для текущего периода
-  int _getExpectedPointsCount(TimePeriod period) {
-    switch (period) {
-      case TimePeriod.hour:
-        return 12; // 12 точек за час (каждые 5 минут)
-      case TimePeriod.hours3:
-        return 18; // 18 точек за 3 часа (каждые 10 минут)
-      case TimePeriod.hours6:
-        return 36; // 36 точек за 6 часов
-      case TimePeriod.hours8:
-        return 48; // 48 точек за 8 часов
-      case TimePeriod.hours12:
-        return 72; // 72 точки за 12 часов
-      case TimePeriod.day:
-        return 24; // 24 точки за день (каждый час)
-      case TimePeriod.week:
-        return 7; // 7 дней в неделе
-      case TimePeriod.month:
-        return 30; // 30 дней в месяце
-    }
-  }
+  // /// Получает ожидаемое количество точек для текущего периода
+  // int _getExpectedPointsCount(TimePeriod period) {
+  //   switch (period) {
+  //     case TimePeriod.hour:
+  //       return 12; // 12 точек за час (каждые 5 минут)
+  //     case TimePeriod.hours3:
+  //       return 18; // 18 точек за 3 часа (каждые 10 минут)
+  //     case TimePeriod.hours6:
+  //       return 36; // 36 точек за 6 часов
+  //     case TimePeriod.hours8:
+  //       return 48; // 48 точек за 8 часов
+  //     case TimePeriod.hours12:
+  //       return 72; // 72 точки за 12 часов
+  //     case TimePeriod.day:
+  //       return 24; // 24 точки за день (каждый час)
+  //     case TimePeriod.week:
+  //       return 7; // 7 дней в неделе
+  //     case TimePeriod.month:
+  //       return 30; // 30 дней в месяце
+  //   }
+  // }
 
   String getBottomTitle(int value) {
     final now = DateTime.now();
