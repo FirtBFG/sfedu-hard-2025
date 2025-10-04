@@ -1,9 +1,10 @@
+import 'package:hack_sfedu_2025/core/data/models/device.dart';
 import 'package:hack_sfedu_2025/core/data/repository/devices_repository.dart';
 import 'package:hack_sfedu_2025/core/data/models/device_data.dart';
 
 class DevicesService {
   final DevicesRepository _repository =
-      DevicesRepository(baseURL: 'https://nzezmt-194-87-191-168.ru.tuna.am/');
+      DevicesRepository(baseURL: 'https://ghlwjg-95-174-102-182.ru.tuna.am');
 
   Future<List<Reading>> fetchDeviceData({
     required int limit,
@@ -21,6 +22,21 @@ class DevicesService {
       return readingList;
     } catch (e) {
       throw 'Failed to fetch device data: $e';
+    }
+  }
+
+  Future<List<Device>> fetchDevices({
+    required int limit,
+    String? status,
+  }) async {
+    try {
+      final data = await _repository.getAllDevices(limit, status);
+      final deviceJSONList = data['devices'] as List<dynamic>;
+      final deviceList =
+          deviceJSONList.map((el) => Device.fromJson(el)).toList();
+      return deviceList;
+    } catch (e) {
+      throw 'Failed to fetch devices: $e';
     }
   }
 }

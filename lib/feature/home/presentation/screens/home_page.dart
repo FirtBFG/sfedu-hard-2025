@@ -15,7 +15,7 @@ class HomePage extends StatelessWidget {
             Icon(Icons.thermostat,
                 color: Theme.of(context).primaryColor, size: 20),
             const SizedBox(width: 6),
-            const Text("ColdGuard Pro", style: TextStyle(fontSize: 16)),
+            const Text("SmartConnector", style: TextStyle(fontSize: 16)),
           ],
         ),
         actions: [

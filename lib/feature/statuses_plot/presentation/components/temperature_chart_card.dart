@@ -40,13 +40,69 @@ class TemperatureChartCard extends StatelessWidget {
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(4.0),
-                child: TemperatureLineChartPlot(plotProvider: plotProvider),
+                child: _buildChartContent(plotProvider),
               ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildChartContent(PlotController plotProvider) {
+    if (plotProvider.isLoading) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text('Загрузка данных...'),
+          ],
+        ),
+      );
+    }
+
+    if (plotProvider.hasError) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, color: Colors.red, size: 48),
+            const SizedBox(height: 16),
+            Text(
+              plotProvider.errorMessage ?? 'Ошибка загрузки данных',
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.red),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: () => plotProvider.refresh(),
+              icon: const Icon(Icons.refresh),
+              label: const Text('Повторить'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (plotProvider.plotData.isEmpty) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.not_interested_outlined, color: Colors.grey, size: 48),
+            SizedBox(height: 16),
+            Text(
+              'Нет данных для отображения',
+              style: TextStyle(color: Colors.grey),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return TemperatureLineChartPlot(plotProvider: plotProvider);
   }
 }
 

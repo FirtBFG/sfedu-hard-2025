@@ -16,10 +16,18 @@ class PlotController extends ChangeNotifier {
   List<AggregatedReading> _aggregatedData =
       []; // Агрегированные данные для отображения
 
+  bool _isLoading = true; // Состояние загрузки
+  String? _errorMessage; // Сообщение об ошибке
+
   TimePeriod get timePeriod => _selectedPeriod;
   SensorType get sensorType => _selectedSensorType;
+  bool get isLoading => _isLoading;
+  bool get hasError => _errorMessage != null;
+  String? get errorMessage => _errorMessage;
 
   Future<void> fetchData() async {
+    _setLoading(true);
+
     try {
       // Получаем сырые данные с сервера (больше лимит для получения достаточного количества данных)
       _rawData = await _devicesService.fetchDeviceData(
@@ -34,14 +42,30 @@ class PlotController extends ChangeNotifier {
       // Форсируем создание точек данных если их недостаточно
       _ensureMinimumDataPoints();
 
+      _setLoading(false);
       notifyListeners();
     } catch (e) {
       print('Error fetching or aggregating data: $e');
       // В случае ошибки, очищаем данные
       _rawData = [];
       _aggregatedData = [];
+      _setError('Ошибка загрузки данных: $e');
       notifyListeners();
     }
+  }
+
+  /// Управляет состоянием загрузки
+  void _setLoading(bool loading) {
+    _isLoading = loading;
+    if (loading) {
+      _errorMessage = null; // Очищаем ошибки при начале загрузки
+    }
+  }
+
+  /// Устанавливает ошибку
+  void _setError(String error) {
+    _isLoading = false;
+    _errorMessage = error;
   }
 
   /// Обеспечивает минимальное количество точек данных для корректного отображения графика
@@ -93,13 +117,22 @@ class PlotController extends ChangeNotifier {
   int get aggregatedDataCount => _aggregatedData.length;
 
   void changePeriod(TimePeriod period) {
-    _selectedPeriod = period;
-    fetchData();
+    if (_selectedPeriod != period) {
+      _selectedPeriod = period;
+      fetchData();
+    }
   }
 
   void changeSensorType(SensorType sensorType) {
-    _selectedSensorType = sensorType;
-    fetchData();
+    if (_selectedSensorType != sensorType) {
+      _selectedSensorType = sensorType;
+      fetchData();
+    }
+  }
+
+  /// Принудительная перезагрузка данных
+  Future<void> refresh() async {
+    await fetchData();
   }
 
   /// Получает ожидаемое количество точек для текущего периода
@@ -160,9 +193,13 @@ class PlotController extends ChangeNotifier {
   String getLeftTitle(double value) {
     switch (_selectedSensorType) {
       case SensorType.humidity:
-        return '${value.toStringAsFixed(1)}%';
+        return '$value%';
       case SensorType.temperature:
         return '${value.toStringAsFixed(1)}°C';
+      case SensorType.alert:
+        return '$value%';
+      case SensorType.fire:
+        return '$value°C';
     }
   }
 
