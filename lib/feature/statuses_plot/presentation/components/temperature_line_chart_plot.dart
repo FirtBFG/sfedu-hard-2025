@@ -47,13 +47,13 @@ class TemperatureLineChartPlot extends StatelessWidget {
               ),
               getTitlesWidget: (value, meta) {
                 // Показываем значение только если оно укладывается в интервал
-                if (value > plotProvider.maxValue + 0.3 ||
-                    value < plotProvider.minValue - 0.3) {
+                if (value > plotProvider.maxValue ||
+                    value < plotProvider.minValue) {
                   return const SizedBox.shrink();
                 }
                 // Округляем до одного знака после запятой
                 return Text(
-                  '${value.toStringAsFixed(1)}°C',
+                  plotProvider.getLeftTitle(value),
                   style: const TextStyle(fontSize: 10),
                 );
               },
@@ -108,7 +108,7 @@ class TemperatureLineChartPlot extends StatelessWidget {
               ),
             ),
             isCurved: true,
-            curveSmoothness: 0.2, // Уменьшаем округлость линии
+            curveSmoothness: 0, // Уменьшаем округлость линии
             color: Theme.of(context).primaryColor,
             dotData: FlDotData(show: false),
             belowBarData: BarAreaData(

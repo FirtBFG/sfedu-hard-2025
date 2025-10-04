@@ -24,4 +24,25 @@ class DevicesRepository {
       throw 'unknown error';
     }
   }
+
+  Future<Map<String, dynamic>> getAllDevices(int limit,
+      [String? status]) async {
+    try {
+      final response = await _dio.get(
+        '$baseURL/api/v1/devices/',
+        queryParameters: status != null
+            ? {
+                'limit': limit,
+                'status': status,
+              }
+            : {'limit': limit},
+      );
+      final data = response.data;
+      return data;
+    } on DioException catch (e) {
+      throw e.response!.data;
+    } catch (e) {
+      throw 'unknown error';
+    }
+  }
 }

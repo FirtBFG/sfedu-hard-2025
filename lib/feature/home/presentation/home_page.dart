@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:hack_sfedu_2025/feature/statuses_plot/presentation/components/temperature_chart_card.dart';
 import '../../statuses_overview/presentation/components/status_overview_card.dart';
-import '../../statuses_plot/presentation/temperature_chart_card.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
