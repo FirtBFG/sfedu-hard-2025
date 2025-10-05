@@ -92,7 +92,7 @@ class StatusOverviewCard extends StatelessWidget {
               icon: Icons.check_circle,
               title: 'Устройства',
               value:
-                  '${deviceProvider.activeCount}/${deviceProvider.devivesList.length} Девайсов',
+                  '${deviceProvider.activeCount}/${deviceProvider.devicesList.length} Девайсов',
               color: Colors.green,
             ),
             StatusTile(

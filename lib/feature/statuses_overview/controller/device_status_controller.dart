@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:hack_sfedu_2025/core/data/models/device.dart';
+import 'package:hack_sfedu_2025/core/data/models/device_data.dart';
+import 'package:hack_sfedu_2025/core/data/models/device_status.dart';
 import 'package:hack_sfedu_2025/core/service/devices_service.dart';
 
-enum DeviceStatus {
+enum DeviceStatusEnum {
   online,
   offline,
 }
 
 class DeviceStatusController extends ChangeNotifier {
   final DevicesService _devicesService = DevicesService();
-  List<Device> _devicesList = [];
+  List<DeviceStatus> _devicesList = [];
   int _activeCount = 0;
 
   bool _isLoading = true; // Состояние загрузки
   String? _errorMessage; // Сообщение об ошибке
 
-  List<Device> get devivesList => _devicesList;
+  List<DeviceStatus> get devicesList => _devicesList;
   int get activeCount => _activeCount;
   bool get isLoading => _isLoading;
   bool get hasError => _errorMessage != null;
@@ -31,7 +32,7 @@ class DeviceStatusController extends ChangeNotifier {
 
       _activeCount = 0; // Сбрасываем счетчик
       for (final device in _devicesList) {
-        if (device.status == DeviceStatus.online.name) {
+        if (device.status == DeviceStatusEnum.online.name) {
           _activeCount++;
         }
       }
@@ -44,6 +45,17 @@ class DeviceStatusController extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<Reading> getLastReading(String sensorType, String deviceId) async {
+    final reading =
+        await _devicesService.fetchLastDeviceData(sensorType: sensorType);
+    return reading.first;
+  }
+
+  // Future<Device> getDeviceById(String deviceId) async {
+  //   final device = await _devicesService.getDeviceById(deviceId: deviceId);
+  //   return device;
+  // }
 
   /// Управляет состоянием загрузки
   void _setLoading(bool loading) {

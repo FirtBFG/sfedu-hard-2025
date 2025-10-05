@@ -1,4 +1,5 @@
 import 'package:hack_sfedu_2025/core/data/models/device.dart';
+import 'package:hack_sfedu_2025/core/data/models/device_status.dart';
 import 'package:hack_sfedu_2025/core/data/repository/devices_repository.dart';
 import 'package:hack_sfedu_2025/core/data/models/device_data.dart';
 
@@ -25,7 +26,23 @@ class DevicesService {
     }
   }
 
-  Future<List<Device>> fetchDevices({
+  Future<List<Reading>> fetchLastDeviceData({
+    required String sensorType,
+    String deviceId = "EIto",
+  }) async {
+    try {
+      final data = await _repository.readDevice(1, sensorType, null, deviceId);
+      final readingsJSONList = data['readings'] as List<dynamic>;
+      final readingList = readingsJSONList
+          .map((el) => Reading.fromJson(el as Map<String, dynamic>))
+          .toList();
+      return readingList;
+    } catch (e) {
+      throw 'Failed to fetch device data: $e';
+    }
+  }
+
+  Future<List<DeviceStatus>> fetchDevices({
     required int limit,
     String? status,
   }) async {
@@ -33,10 +50,21 @@ class DevicesService {
       final data = await _repository.getAllDevices(limit, status);
       final deviceJSONList = data['devices'] as List<dynamic>;
       final deviceList =
-          deviceJSONList.map((el) => Device.fromJson(el)).toList();
+          deviceJSONList.map((el) => DeviceStatus.fromJson(el)).toList();
       return deviceList;
     } catch (e) {
       throw 'Failed to fetch devices: $e';
+    }
+  }
+
+  Future<Device> getDeviceById({required String deviceId}) async {
+    try {
+      final data = await _repository.getDeviceById(deviceId);
+      final deviceJSON = data['device'];
+      final device = Device.fromJson(deviceJSON);
+      return device;
+    } catch (e) {
+      throw 'Failed to fetch device: $e';
     }
   }
 }

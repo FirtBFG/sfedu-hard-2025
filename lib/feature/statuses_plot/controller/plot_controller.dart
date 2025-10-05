@@ -23,6 +23,7 @@ class PlotController extends ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get hasError => _errorMessage != null;
   String? get errorMessage => _errorMessage;
+  List<Reading> get rawData => _rawData;
 
   Future<void> fetchData() async {
     _setLoading(true);

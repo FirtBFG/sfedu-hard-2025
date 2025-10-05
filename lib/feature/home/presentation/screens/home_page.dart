@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hack_sfedu_2025/feature/home/presentation/components/device_status_card.dart';
+import 'package:hack_sfedu_2025/feature/statuses_overview/controller/device_status_controller.dart';
 import 'package:hack_sfedu_2025/feature/statuses_overview/presentation/components/status_overview_card.dart';
+import 'package:provider/provider.dart';
 import '../../../statuses_plot/presentation/components/temperature_chart_card.dart';
 
 class HomePage extends StatelessWidget {
@@ -8,6 +10,7 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final deviceProvider = Provider.of<DeviceStatusController>(context);
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -48,43 +51,21 @@ class HomePage extends StatelessWidget {
               child: TemperatureChartCard(),
             ),
             const SizedBox(height: 12),
-            GridView.count(
+            GridView.builder(
               physics: const NeverScrollableScrollPhysics(),
               shrinkWrap: true,
-              crossAxisCount: 2,
-              childAspectRatio: 1.2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              children: [
-                DeviceStatusCard(
-                  deviceName: "Прибор 1",
-                  status: "Normal",
-                  value: "data",
-                  minValue: 0,
-                  maxValue: 200,
-                ),
-                DeviceStatusCard(
-                  deviceName: "Прибор 2",
-                  status: "Normal",
-                  value: "data",
-                  minValue: 0,
-                  maxValue: 200,
-                ),
-                DeviceStatusCard(
-                  deviceName: "Прибор 3",
-                  status: "Normal",
-                  value: "data",
-                  minValue: 0,
-                  maxValue: 200,
-                ),
-                DeviceStatusCard(
-                  deviceName: "Прибор 4",
-                  status: "Normal",
-                  value: "data",
-                  minValue: 0,
-                  maxValue: 200,
-                ),
-              ],
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio: 1.2,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+              ),
+              itemCount: deviceProvider.devicesList.length,
+              itemBuilder: (context, index) => DeviceStatusCard(
+                deviceId: deviceProvider.devicesList[index].id,
+                deviceName: deviceProvider.devicesList[index].name,
+                status: deviceProvider.devicesList[index].status,
+              ),
             ),
           ],
         ),

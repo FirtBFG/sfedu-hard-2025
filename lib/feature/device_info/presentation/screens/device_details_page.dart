@@ -7,15 +7,15 @@ class DeviceDetailsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final args =
         ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+    final String deviceId = args['deviceId'];
+    final String value = args['value'];
     final String deviceName = args['deviceName'];
     final String status = args['status'];
-    final String value = args['value'];
-    final double minValue = args['minValue'];
-    final double maxValue = args['maxValue'];
+    final String lastSeen = args['lastSeen'];
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(deviceName, style: const TextStyle(fontSize: 16)),
+        title: Text("", style: const TextStyle(fontSize: 16)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
@@ -94,47 +94,6 @@ class DeviceDetailsPage extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 16),
-
-                          // Полоса значений
-                          Row(
-                            children: [
-                              Text(
-                                '$minValue',
-                                style: const TextStyle(
-                                    fontSize: 12, fontWeight: FontWeight.bold),
-                              ),
-                              Expanded(
-                                child: Container(
-                                  height: 8,
-                                  margin:
-                                      const EdgeInsets.symmetric(horizontal: 8),
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey[300],
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: FractionallySizedBox(
-                                    alignment: Alignment.centerLeft,
-                                    widthFactor: (70 - minValue) /
-                                        (maxValue -
-                                            minValue), // Где 70 - текущее значение (псевдо)
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .secondary,
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Text(
-                                '$maxValue',
-                                style: const TextStyle(
-                                    fontSize: 12, fontWeight: FontWeight.bold),
-                              ),
-                            ],
-                          ),
                         ],
                       ),
                     ),
