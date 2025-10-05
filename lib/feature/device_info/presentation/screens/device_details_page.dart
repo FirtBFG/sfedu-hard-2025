@@ -3,6 +3,8 @@ import 'package:hack_sfedu_2025/core/data/models/device_limits.dart';
 import 'package:hack_sfedu_2025/core/data/models/sensor_values.dart';
 import 'package:hack_sfedu_2025/core/navigation/routes/app_routes.dart';
 import 'package:hack_sfedu_2025/feature/device_info/controller/device_controller.dart';
+import 'package:hack_sfedu_2025/feature/device_info/presentation/components/error_loads_card_widget.dart';
+import 'package:hack_sfedu_2025/feature/device_info/presentation/components/status_card_widet.dart';
 import 'package:provider/provider.dart';
 
 class DeviceDetailsPage extends StatefulWidget {
@@ -363,113 +365,6 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
         content: Text(message),
         duration: const Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-}
-
-class ErrorLoadCardWidget extends StatelessWidget {
-  const ErrorLoadCardWidget({
-    super.key,
-    required this.snapshot,
-  });
-
-  final AsyncSnapshot snapshot;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      color: Colors.red.withValues(alpha: 0.1),
-      child: Text('Ошибка загрузки данных: ${snapshot.error}',
-          style: const TextStyle(color: Colors.red)),
-    );
-  }
-}
-
-class StatusCardWidget extends StatelessWidget {
-  const StatusCardWidget({
-    super.key,
-    required this.chipColor,
-    required String status,
-    required this.textColor,
-    required String value,
-  })  : _status = status,
-        _value = value;
-
-  final Color chipColor;
-  final String _status;
-  final Color textColor;
-  final String _value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Статус устройства',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: chipColor,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Text(
-                    _status,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: textColor,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-
-            // Текущее значение
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                children: [
-                  Text(
-                    'Текущее значение',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    _value,
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
