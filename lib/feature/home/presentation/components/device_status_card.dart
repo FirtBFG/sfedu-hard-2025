@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hack_sfedu_2025/core/data/models/device_data.dart';
 import 'package:hack_sfedu_2025/core/enums/sensor_type.dart';
-import 'package:hack_sfedu_2025/feature/statuses_overview/controller/device_status_controller.dart';
+import 'package:hack_sfedu_2025/feature/device_info/controller/device_controller.dart';
 import 'package:provider/provider.dart';
 
 class DeviceStatusCard extends StatelessWidget {
@@ -96,7 +96,6 @@ class DeviceStatusCard extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 12),
-
                   // Средняя часть с данными
                   Expanded(
                     child: Column(

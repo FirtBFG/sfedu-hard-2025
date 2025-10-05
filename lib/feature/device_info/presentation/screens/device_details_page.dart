@@ -1,21 +1,74 @@
 import 'package:flutter/material.dart';
+import 'package:hack_sfedu_2025/core/data/models/device_limits.dart';
+import 'package:hack_sfedu_2025/core/data/models/sensor_values.dart';
+import 'package:hack_sfedu_2025/core/navigation/routes/app_routes.dart';
+import 'package:hack_sfedu_2025/feature/device_info/controller/device_controller.dart';
+import 'package:provider/provider.dart';
 
-class DeviceDetailsPage extends StatelessWidget {
+// Преобразуем в StatefulWidget для управления состоянием Future
+class DeviceDetailsPage extends StatefulWidget {
   const DeviceDetailsPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  State<DeviceDetailsPage> createState() => _DeviceDetailsPageState();
+}
+
+class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
+  // Переменная для хранения Future
+  // ИСПРАВЛЕНИЕ: Сделана обнуляемой, чтобы избежать LateInitializationError
+  Future<DeviceResponse>? _deviceValuesFuture;
+
+  // Переменные для хранения аргументов маршрута
+  late String _deviceId;
+  late String _deviceName;
+  late String _status;
+  late String _value;
+  late String _lastSeen;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Получаем аргументы из маршрута
     final args =
         ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-    final String deviceId = args['deviceId'];
-    final String value = args['value'];
-    final String deviceName = args['deviceName'];
-    final String status = args['status'];
-    final String lastSeen = args['lastSeen'];
+    _deviceId = args['deviceId'];
+    _deviceName = args['deviceName'];
+    _status = args['status'];
+    _value = args['value'];
+    _lastSeen = args['lastSeen'];
+
+    // Инициализируем Future только при первом запуске
+    // ИСПРАВЛЕНИЕ: Проверяем на null, что безопасно для обнуляемой переменной.
+    if (_deviceValuesFuture == null) {
+      _deviceValuesFuture = _fetchDeviceValues();
+    }
+  }
+
+  // Метод для вызова контроллера и получения Future
+  Future<DeviceResponse> _fetchDeviceValues() {
+    final controller = context.read<DeviceStatusController>();
+    // Теперь вызываем реальный метод контроллера
+    return controller.getDeviceValues(deviceId: _deviceId);
+  }
+
+  // УДАЛЕН: Был удален _mapSensorValuesToDeviceValues.
+  // Теперь данные SensorValues передаются напрямую в новый метод _buildSensorValuesCard.
+
+  @override
+  Widget build(BuildContext context) {
+    // ИСПРАВЛЕНИЕ: withValues заменено на withOpacity
+    Color chipColor = _status.toLowerCase() == 'online'
+        ? Colors.green.withOpacity(0.2)
+        : Colors.red.withOpacity(0.2);
+    Color textColor =
+        _status.toLowerCase() == 'online' ? Colors.green : Colors.red;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("", style: const TextStyle(fontSize: 16)),
+        // Используем имя устройства в заголовке
+        title: Text(_deviceName),
+        centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
@@ -46,14 +99,14 @@ class DeviceDetailsPage extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.secondary,
+                            color: chipColor,
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Text(
-                            status,
+                            _status,
                             style: TextStyle(
                               fontSize: 12,
-                              color: Theme.of(context).colorScheme.onSecondary,
+                              color: textColor,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -62,7 +115,7 @@ class DeviceDetailsPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 20),
 
-                    // Текущее значение с графическим представлением
+                    // Текущее значение
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(20),
@@ -70,7 +123,7 @@ class DeviceDetailsPage extends StatelessWidget {
                         color: Theme.of(context)
                             .colorScheme
                             .primary
-                            .withValues(alpha: 0.1),
+                            .withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Column(
@@ -84,7 +137,7 @@ class DeviceDetailsPage extends StatelessWidget {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            value,
+                            _value,
                             style: TextStyle(
                               fontSize: 32,
                               fontWeight: FontWeight.bold,
@@ -100,6 +153,34 @@ class DeviceDetailsPage extends StatelessWidget {
                   ],
                 ),
               ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // БЛОК: Отображение данных с сервера (лимиты и серво)
+            FutureBuilder<DeviceResponse>(
+              // ИСПРАВЛЕНИЕ: Используем ! так как инициализация гарантирована в didChangeDependencies
+              future: _deviceValuesFuture!,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                      child: Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ));
+                } else if (snapshot.hasError) {
+                  return Card(
+                    color: Colors.red.withOpacity(0.1),
+                    child: Text('Ошибка загрузки данных: ${snapshot.error}',
+                        style: const TextStyle(color: Colors.red)),
+                  );
+                } else if (snapshot.hasData && snapshot.data!.values != null) {
+                  return _buildSensorValuesCard(context, snapshot.data!.values);
+                } else {
+                  // Если данных нет, но и нет ошибки
+                  return const SizedBox.shrink();
+                }
+              },
             ),
 
             const SizedBox(height: 16),
@@ -124,12 +205,15 @@ class DeviceDetailsPage extends StatelessWidget {
               children: [
                 _buildActionCard(
                   context,
-                  icon: Icons.settings,
-                  title: 'Настройки',
-                  subtitle: 'Конфигурация устройства',
+                  icon: Icons.control_camera_sharp,
+                  title: 'Управление',
+                  subtitle: 'Удалённое управление',
                   onTap: () {
                     // Навигация к настройкам
-                    _showSnackBar(context, 'Открываем настройки $deviceName');
+                    Navigator.pushNamed(
+                      context,
+                      AppRoutes.deviceRemoteControl,
+                    );
                   },
                 ),
                 _buildActionCard(
@@ -139,7 +223,7 @@ class DeviceDetailsPage extends StatelessWidget {
                   subtitle: 'Просмотр логов',
                   onTap: () {
                     // Навигация к истории
-                    _showSnackBar(context, 'Открываем историю $deviceName');
+                    _showSnackBar(context, 'Открываем историю $_deviceName');
                   },
                 ),
                 _buildActionCard(
@@ -149,7 +233,7 @@ class DeviceDetailsPage extends StatelessWidget {
                   subtitle: 'Подробная информация',
                   onTap: () {
                     // Навигация к деталям
-                    _showSnackBar(context, 'Открываем детали $deviceName');
+                    _showSnackBar(context, 'Открываем детали $_deviceName');
                   },
                 ),
                 _buildActionCard(
@@ -158,8 +242,11 @@ class DeviceDetailsPage extends StatelessWidget {
                   title: 'Обновить',
                   subtitle: 'Синхронизация данных',
                   onTap: () {
-                    // Обновление данных
-                    _showSnackBar(context, 'Обновляем данные $deviceName');
+                    // Обновление данных: перезапускаем Future
+                    setState(() {
+                      _deviceValuesFuture = _fetchDeviceValues();
+                    });
+                    _showSnackBar(context, 'Обновляем данные $_deviceName');
                   },
                 ),
               ],
@@ -182,10 +269,10 @@ class DeviceDetailsPage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    _buildInfoRow('ID:', deviceName),
-                    _buildInfoRow('Статус:', status),
+                    _buildInfoRow('ID:', _deviceId),
+                    _buildInfoRow('Статус:', _status),
                     _buildInfoRow('Тип:', 'Температурный датчик'),
-                    _buildInfoRow('Последнее обновление:', 'Только что'),
+                    _buildInfoRow('Последнее обновление:', _lastSeen),
                   ],
                 ),
               ),
@@ -193,6 +280,94 @@ class DeviceDetailsPage extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildSensorValuesCard(
+      BuildContext context, SensorValues sensorValues) {
+    final List<Widget> valueChips = [];
+
+    valueChips.add(_buildValueChip(
+      context,
+      label: 'Предел пламени',
+      value: sensorValues.fireLimit.toString(),
+      unit: 'ед.',
+    ));
+
+    valueChips.add(_buildValueChip(
+      context,
+      label: 'Предел температуры',
+      value: sensorValues.humidityLimit.toString(),
+      unit: '°C',
+    ));
+
+    valueChips.add(_buildValueChip(
+      context,
+      label: 'Положение серво',
+      value: sensorValues.servoPosition.toString(),
+      unit: 'град',
+    ));
+
+    return Center(
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Установленные лимиты и параметры',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 12),
+              // Используем Wrap для адаптивного отображения двух элементов в ряд
+              Wrap(
+                spacing: 16, // Горизонтальный отступ
+                runSpacing: 12, // Вертикальный отступ
+                children: valueChips.map((chip) {
+                  return SizedBox(
+                    width: (MediaQuery.of(context).size.width / 2) -
+                        32, // Почти половина ширины экрана
+                    child: chip,
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildValueChip(
+    BuildContext context, {
+    required String label,
+    required String value,
+    required String unit,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+          overflow: TextOverflow.ellipsis,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          '$value $unit',
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
     );
   }
 

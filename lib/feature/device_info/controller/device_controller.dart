@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hack_sfedu_2025/core/data/models/device_data.dart';
+import 'package:hack_sfedu_2025/core/data/models/device_limits.dart';
 import 'package:hack_sfedu_2025/core/data/models/device_status.dart';
 import 'package:hack_sfedu_2025/core/service/devices_service.dart';
 
@@ -52,10 +53,19 @@ class DeviceStatusController extends ChangeNotifier {
     return reading.first;
   }
 
-  // Future<Device> getDeviceById(String deviceId) async {
-  //   final device = await _devicesService.getDeviceById(deviceId: deviceId);
-  //   return device;
-  // }
+  Future<DeviceResponse> getDeviceValues({required String deviceId}) async {
+    try {
+      // Вызываем метод сервиса, который обращается к репозиторию
+      final DeviceResponse response =
+          await _devicesService.fetchCurrentDeviceValues(
+        deviceId: deviceId,
+      );
+      return response;
+    } catch (e) {
+      // В случае ошибки, пробрасываем ее дальше, чтобы UI мог ее обработать
+      throw 'Failed to fetch device values for $deviceId: $e';
+    }
+  }
 
   /// Управляет состоянием загрузки
   void _setLoading(bool loading) {

@@ -1,4 +1,5 @@
 import 'package:hack_sfedu_2025/core/data/models/device.dart';
+import 'package:hack_sfedu_2025/core/data/models/device_limits.dart';
 import 'package:hack_sfedu_2025/core/data/models/device_status.dart';
 import 'package:hack_sfedu_2025/core/data/repository/devices_repository.dart';
 import 'package:hack_sfedu_2025/core/data/models/device_data.dart';
@@ -6,6 +7,19 @@ import 'package:hack_sfedu_2025/core/data/models/device_data.dart';
 class DevicesService {
   final DevicesRepository _repository =
       DevicesRepository(baseURL: 'https://3piucp-194-87-191-168.ru.tuna.am/');
+
+  Future<DeviceResponse> fetchCurrentDeviceValues({
+    String deviceId = "EIto",
+  }) async {
+    try {
+      final data = await _repository.getCurrentDeviceValues(deviceId);
+      // Преобразуем полученный Map в модель DeviceResponse
+      final deviceResponse = DeviceResponse.fromJson(data);
+      return deviceResponse;
+    } catch (e) {
+      throw 'Failed to fetch current device values: $e';
+    }
+  }
 
   Future<List<Reading>> fetchDeviceData({
     required int limit,

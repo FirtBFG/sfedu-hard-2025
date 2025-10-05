@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hack_sfedu_2025/feature/statuses_overview/controller/alerts_controller.dart';
-import 'package:hack_sfedu_2025/feature/statuses_overview/controller/device_status_controller.dart';
+import 'package:hack_sfedu_2025/feature/device_info/controller/device_controller.dart';
 import 'package:hack_sfedu_2025/feature/statuses_overview/presentation/components/status_tile.dart';
 import 'package:provider/provider.dart';
 

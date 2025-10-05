@@ -6,6 +6,22 @@ class DevicesRepository {
 
   DevicesRepository({required this.baseURL});
 
+  Future<Map<String, dynamic>> getCurrentDeviceValues(
+      [String deviceId = 'EIto']) async {
+    try {
+      final response = await _dio.get(
+        '$baseURL/api/v1/devices/$deviceId/values', // КОНЕЧНАЯ ТОЧКА
+      );
+      final data = response.data;
+      return data;
+    } on DioException catch (e) {
+      // Бросаем данные ответа в случае ошибки Dio (например, 404, 500)
+      throw e.response?.data ?? 'Unknown Dio error';
+    } catch (e) {
+      throw 'unknown error: $e';
+    }
+  }
+
   Future<Map<String, dynamic>> readDevice(
       int limit, String sensorType, String? timeframe,
       [String deviceId = 'EIto']) async {
