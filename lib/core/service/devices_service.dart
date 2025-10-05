@@ -6,14 +6,29 @@ import 'package:hack_sfedu_2025/core/data/models/device_data.dart';
 
 class DevicesService {
   final DevicesRepository _repository =
-      DevicesRepository(baseURL: 'https://3piucp-194-87-191-168.ru.tuna.am/');
+      DevicesRepository(baseURL: 'https://3piucp-194-87-191-168.ru.tuna.am');
+
+  Future<void> sendDeviceCommand({
+    required String deviceId,
+    required String action,
+    required int? value,
+  }) async {
+    try {
+      await _repository.sendCommand(
+        deviceId: deviceId,
+        action: action,
+        value: value,
+      );
+    } catch (e) {
+      throw 'Failed to send command $action to device $deviceId: $e';
+    }
+  }
 
   Future<DeviceResponse> fetchCurrentDeviceValues({
     String deviceId = "EIto",
   }) async {
     try {
       final data = await _repository.getCurrentDeviceValues(deviceId);
-      // Преобразуем полученный Map в модель DeviceResponse
       final deviceResponse = DeviceResponse.fromJson(data);
       return deviceResponse;
     } catch (e) {

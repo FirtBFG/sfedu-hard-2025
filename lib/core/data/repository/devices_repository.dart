@@ -6,6 +6,32 @@ class DevicesRepository {
 
   DevicesRepository({required this.baseURL});
 
+  Future<void> sendCommand({
+    required String deviceId,
+    required String action,
+    required int? value,
+  }) async {
+    try {
+      await _dio.post(
+        '$baseURL/api/v1/device/commands/',
+        data: value != null
+            ? {
+                'device_id': deviceId,
+                'action': action,
+                'value': value,
+              }
+            : {
+                'device_id': deviceId,
+                'action': action,
+              },
+      );
+    } on DioException catch (e) {
+      throw e.response?.data ?? 'Unknown Dio error during command sending';
+    } catch (e) {
+      throw 'unknown error during command sending: $e';
+    }
+  }
+
   Future<Map<String, dynamic>> getCurrentDeviceValues(
       [String deviceId = 'EIto']) async {
     try {

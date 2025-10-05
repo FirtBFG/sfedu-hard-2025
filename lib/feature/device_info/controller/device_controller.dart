@@ -2,12 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:hack_sfedu_2025/core/data/models/device_data.dart';
 import 'package:hack_sfedu_2025/core/data/models/device_limits.dart';
 import 'package:hack_sfedu_2025/core/data/models/device_status.dart';
+import 'package:hack_sfedu_2025/core/enums/device_emums.dart';
 import 'package:hack_sfedu_2025/core/service/devices_service.dart';
-
-enum DeviceStatusEnum {
-  online,
-  offline,
-}
 
 class DeviceStatusController extends ChangeNotifier {
   final DevicesService _devicesService = DevicesService();
@@ -16,6 +12,8 @@ class DeviceStatusController extends ChangeNotifier {
 
   bool _isLoading = true; // Состояние загрузки
   String? _errorMessage; // Сообщение об ошибке
+
+  ControlPage controlPage = ControlPage.nothing;
 
   List<DeviceStatus> get devicesList => _devicesList;
   int get activeCount => _activeCount;
@@ -84,5 +82,15 @@ class DeviceStatusController extends ChangeNotifier {
   /// Принудительная перезагрузка данных
   Future<void> refresh() async {
     await getAllDevices(100);
+  }
+
+  void changeControlPanel(ControlPage value) {
+    controlPage = value;
+    notifyListeners();
+  }
+
+  Future<void> sendCommand(String deviceId, String action, [int? value]) async {
+    await _devicesService.sendDeviceCommand(
+        deviceId: deviceId, action: action, value: value);
   }
 }

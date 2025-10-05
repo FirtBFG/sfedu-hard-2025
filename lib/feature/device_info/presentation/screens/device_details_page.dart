@@ -5,7 +5,6 @@ import 'package:hack_sfedu_2025/core/navigation/routes/app_routes.dart';
 import 'package:hack_sfedu_2025/feature/device_info/controller/device_controller.dart';
 import 'package:provider/provider.dart';
 
-// Преобразуем в StatefulWidget для управления состоянием Future
 class DeviceDetailsPage extends StatefulWidget {
   const DeviceDetailsPage({super.key});
 
@@ -14,11 +13,8 @@ class DeviceDetailsPage extends StatefulWidget {
 }
 
 class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
-  // Переменная для хранения Future
-  // ИСПРАВЛЕНИЕ: Сделана обнуляемой, чтобы избежать LateInitializationError
   Future<DeviceResponse>? _deviceValuesFuture;
 
-  // Переменные для хранения аргументов маршрута
   late String _deviceId;
   late String _deviceName;
   late String _status;
@@ -29,7 +25,6 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    // Получаем аргументы из маршрута
     final args =
         ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
     _deviceId = args['deviceId'];
@@ -38,35 +33,25 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
     _value = args['value'];
     _lastSeen = args['lastSeen'];
 
-    // Инициализируем Future только при первом запуске
-    // ИСПРАВЛЕНИЕ: Проверяем на null, что безопасно для обнуляемой переменной.
-    if (_deviceValuesFuture == null) {
-      _deviceValuesFuture = _fetchDeviceValues();
-    }
+    _deviceValuesFuture ??= _fetchDeviceValues();
   }
 
   // Метод для вызова контроллера и получения Future
   Future<DeviceResponse> _fetchDeviceValues() {
     final controller = context.read<DeviceStatusController>();
-    // Теперь вызываем реальный метод контроллера
     return controller.getDeviceValues(deviceId: _deviceId);
   }
 
-  // УДАЛЕН: Был удален _mapSensorValuesToDeviceValues.
-  // Теперь данные SensorValues передаются напрямую в новый метод _buildSensorValuesCard.
-
   @override
   Widget build(BuildContext context) {
-    // ИСПРАВЛЕНИЕ: withValues заменено на withOpacity
     Color chipColor = _status.toLowerCase() == 'online'
-        ? Colors.green.withOpacity(0.2)
-        : Colors.red.withOpacity(0.2);
+        ? Colors.green.withValues(alpha: 0.2)
+        : Colors.red.withValues(alpha: 0.2);
     Color textColor =
         _status.toLowerCase() == 'online' ? Colors.green : Colors.red;
 
     return Scaffold(
       appBar: AppBar(
-        // Используем имя устройства в заголовке
         title: Text(_deviceName),
         centerTitle: true,
         leading: IconButton(
@@ -79,87 +64,16 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Основная информационная карточка
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Статус устройства',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: chipColor,
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Text(
-                            _status,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: textColor,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Текущее значение
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .primary
-                            .withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Column(
-                        children: [
-                          Text(
-                            'Текущее значение',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            _value,
-                            style: TextStyle(
-                              fontSize: 32,
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onPrimaryContainer,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            StatusCardWidget(
+              chipColor: chipColor,
+              status: _status,
+              textColor: textColor,
+              value: _value,
             ),
 
             const SizedBox(height: 16),
 
-            // БЛОК: Отображение данных с сервера (лимиты и серво)
             FutureBuilder<DeviceResponse>(
-              // ИСПРАВЛЕНИЕ: Используем ! так как инициализация гарантирована в didChangeDependencies
               future: _deviceValuesFuture!,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -169,11 +83,7 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   ));
                 } else if (snapshot.hasError) {
-                  return Card(
-                    color: Colors.red.withOpacity(0.1),
-                    child: Text('Ошибка загрузки данных: ${snapshot.error}',
-                        style: const TextStyle(color: Colors.red)),
-                  );
+                  return ErrorLoadCardWidget(snapshot: snapshot);
                 } else if (snapshot.hasData && snapshot.data!.values != null) {
                   return _buildSensorValuesCard(context, snapshot.data!.values);
                 } else {
@@ -453,6 +363,113 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
         content: Text(message),
         duration: const Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+}
+
+class ErrorLoadCardWidget extends StatelessWidget {
+  const ErrorLoadCardWidget({
+    super.key,
+    required this.snapshot,
+  });
+
+  final AsyncSnapshot snapshot;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      color: Colors.red.withValues(alpha: 0.1),
+      child: Text('Ошибка загрузки данных: ${snapshot.error}',
+          style: const TextStyle(color: Colors.red)),
+    );
+  }
+}
+
+class StatusCardWidget extends StatelessWidget {
+  const StatusCardWidget({
+    super.key,
+    required this.chipColor,
+    required String status,
+    required this.textColor,
+    required String value,
+  })  : _status = status,
+        _value = value;
+
+  final Color chipColor;
+  final String _status;
+  final Color textColor;
+  final String _value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Статус устройства',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: chipColor,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Text(
+                    _status,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: textColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            // Текущее значение
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    'Текущее значение',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    _value,
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
